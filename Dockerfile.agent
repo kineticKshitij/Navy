@@ -1,0 +1,47 @@
+# Multi-stage build for IPsec Manager Agent
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /build
+
+# Install build dependencies
+RUN apk add --no-cache git
+
+# Copy go mod files
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build agent binary
+RUN CGO_ENABLED=0 go build -ldflags="-w -s -X main.Version=v0.1.0" \
+    -o ipsec-agent ./cmd/agent
+
+# Final stage - Ubuntu for strongSwan
+FROM ubuntu:22.04
+
+# Install strongSwan and dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        strongswan \
+        strongswan-swanctl \
+        ca-certificates \
+        iproute2 \
+        iptables \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy binary
+COPY --from=builder /build/ipsec-agent .
+
+# Copy config and startup script
+COPY configs/agent-config.yaml /etc/ipsec-agent/config.yaml
+COPY docker-entrypoint-agent.sh /app/
+RUN chmod +x /app/docker-entrypoint-agent.sh
+
+# Agent needs elevated privileges for IPsec
+# Use --privileged flag when running container
+
+ENTRYPOINT ["/app/docker-entrypoint-agent.sh"]
+CMD ["start", "--config", "/etc/ipsec-agent/config.yaml"]

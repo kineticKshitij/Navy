@@ -1,0 +1,74 @@
+services:
+  # IPsec Management Server
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    container_name: ipsec-server
+    ports:
+      - "8080:8080"
+    environment:
+      - LOG_LEVEL=info
+    volumes:
+      - server-data:/app/data
+    networks:
+      - ipsec-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Linux Agent (Ubuntu)
+  agent-linux:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    container_name: ipsec-agent-linux
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    environment:
+      - SERVER_URL=http://server:8080
+      - PEER_ID=docker-linux-agent
+      - LOG_LEVEL=info
+    depends_on:
+      - server
+    networks:
+      - ipsec-network
+    restart: unless-stopped
+    command: ["start", "--server", "http://server:8080", "--peer-id", "docker-linux-agent"]
+
+  # Additional Linux Agent for testing multi-peer
+  agent-linux-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    container_name: ipsec-agent-linux-2
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    environment:
+      - SERVER_URL=http://server:8080
+      - PEER_ID=docker-linux-agent-2
+      - LOG_LEVEL=info
+    depends_on:
+      - server
+    networks:
+      - ipsec-network
+    restart: unless-stopped
+    command: ["start", "--server", "http://server:8080", "--peer-id", "docker-linux-agent-2"]
+
+volumes:
+  server-data:
+    driver: local
+
+networks:
+  ipsec-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

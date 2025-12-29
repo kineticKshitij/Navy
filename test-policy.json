@@ -1,0 +1,37 @@
+{
+  "id": "test-policy-1",
+  "name": "Test Site-to-Site Tunnel",
+  "description": "Test ESP tunnel for demo",
+  "priority": 100,
+  "applies_to": {
+    "peer_ids": ["test-windows-agent"]
+  },
+  "tunnels": [
+    {
+      "name": "test-tunnel-1",
+      "mode": "esp-tunnel",
+      "local_address": "192.168.1.10",
+      "remote_address": "192.168.1.20",
+      "crypto": {
+        "encryption": "aes256",
+        "integrity": "sha256",
+        "dh_group": "modp2048"
+      },
+      "auth": {
+        "type": "psk",
+        "psk": "test-shared-secret-key-12345"
+      },
+      "traffic_selectors": [
+        {
+          "local_subnet": "10.1.0.0/24",
+          "remote_subnet": "10.2.0.0/24"
+        }
+      ],
+      "dpd": {
+        "enabled": true,
+        "delay": 30,
+        "timeout": 120
+      }
+    }
+  ]
+}

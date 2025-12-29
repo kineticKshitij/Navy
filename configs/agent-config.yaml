@@ -1,0 +1,59 @@
+# IPsec Agent Configuration
+
+# Server connection
+server:
+  # URL of the policy management server
+  url: "http://localhost:8080"
+  
+  # Connection timeout
+  timeout: "30s"
+  
+  # TLS verification (set to false for self-signed certs in testing)
+  tls_verify: true
+
+# Agent settings
+agent:
+  # How often to sync policies from server
+  sync_interval: "60s"
+  
+  # How often to check tunnel health
+  health_check_interval: "10s"
+  
+  # Watchdog interval for restarting failed tunnels
+  watchdog_interval: "30s"
+
+# Peer information
+peer:
+  # Peer ID (auto-generated if not specified)
+  id: ""
+  
+  # Tags for policy targeting
+  tags:
+    - "production"
+    # - "datacenter-1"
+    # - "linux"
+
+# Logging configuration
+log:
+  level: "info"  # debug, info, warn, error
+  format: "console"  # console, json
+  
+  # Optional: Write logs to file
+  # file: "/var/log/ipsec-agent/agent.log"
+  
+  # Optional: Send logs to syslog (Linux/macOS)
+  # syslog: true
+
+# Platform-specific settings
+platform:
+  linux:
+    # strongSwan configuration directory
+    swanctl_dir: "/etc/swanctl"
+    
+  windows:
+    # Windows-specific settings
+    # (currently uses defaults)
+    
+  darwin:
+    # macOS-specific settings
+    config_dir: "/etc/ipsec"

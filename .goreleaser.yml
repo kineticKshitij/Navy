@@ -1,0 +1,134 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - id: server
+    main: ./cmd/server
+    binary: ipsec-server
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X main.Version={{.Version}}
+      - -X main.BuildTime={{.Date}}
+
+  - id: agent
+    main: ./cmd/agent
+    binary: ipsec-agent
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X main.Version={{.Version}}
+      - -X main.BuildTime={{.Date}}
+
+archives:
+  - id: server-archive
+    builds:
+      - server
+    name_template: "{{ .ProjectName }}-server_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+      - configs/server-config.yaml
+
+  - id: agent-archive
+    builds:
+      - agent
+    name_template: "{{ .ProjectName }}-agent_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+      - configs/agent-config.yaml
+      - configs/example-policies.yaml
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+
+nfpms:
+  - id: server-deb
+    builds:
+      - server
+    package_name: ipsec-server
+    vendor: SWAVLAMBAN 2025
+    homepage: https://github.com/swavlamban/ipsec-manager
+    maintainer: SWAVLAMBAN Team
+    description: |-
+      IPsec Management Server - Central policy management
+      Cross-platform IPsec tunnel management solution
+    license: TBD
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/local/bin
+    contents:
+      - src: configs/server-config.yaml
+        dst: /etc/ipsec-server/config.yaml
+        type: config
+    scripts:
+      postinstall: "scripts/postinstall-server.sh"
+
+  - id: agent-deb
+    builds:
+      - agent
+    package_name: ipsec-agent
+    vendor: SWAVLAMBAN 2025
+    homepage: https://github.com/swavlamban/ipsec-manager
+    maintainer: SWAVLAMBAN Team
+    description: |-
+      IPsec Management Agent - Cross-platform IPsec tunnel agent
+      Automatically manages IPsec tunnels based on central policies
+    license: TBD
+    formats:
+      - deb
+      - rpm
+    dependencies:
+      - strongswan  # Linux only
+    bindir: /usr/local/bin
+    contents:
+      - src: configs/agent-config.yaml
+        dst: /etc/ipsec-agent/config.yaml
+        type: config
+    scripts:
+      postinstall: "scripts/postinstall-agent.sh"

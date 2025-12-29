@@ -1,0 +1,39 @@
+{
+  "id": "docker-test-policy",
+  "name": "Docker Test Policy",
+  "description": "Simple test policy for Docker agents",
+  "version": 1,
+  "enabled": true,
+  "priority": 100,
+  "applies_to": ["docker-linux-agent", "docker-linux-agent-2"],
+  "tunnels": [
+    {
+      "name": "test-tunnel",
+      "enabled": true,
+      "mode": "esp-tunnel",
+      "local_address": "172.20.0.10",
+      "remote_address": "172.20.0.20",
+      "crypto": {
+        "encryption": "aes256",
+        "integrity": "sha256",
+        "dhgroup": "modp2048",
+        "ikeversion": "ikev2",
+        "lifetime": "3600s"
+      },
+      "auth": {
+        "type": "psk",
+        "secret": "demo-shared-secret-key-123456"
+      },
+      "traffic_selectors": [
+        {
+          "local_subnet": "10.1.0.0/24",
+          "remote_subnet": "10.2.0.0/24"
+        }
+      ],
+      "dpd": {
+        "delay": "30s",
+        "action": "restart"
+      }
+    }
+  ]
+}

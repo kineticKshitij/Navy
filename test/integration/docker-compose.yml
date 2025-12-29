@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # IPsec Management Server
+  server:
+    build:
+      context: ../..
+      dockerfile: test/docker/Dockerfile.server
+    ports:
+      - "8080:8080"
+    volumes:
+      - server-data:/data
+    environment:
+      - LOG_LEVEL=debug
+    networks:
+      - ipsec-net
+
+  # Linux Agent (Ubuntu)
+  agent-ubuntu:
+    build:
+      context: ../..
+      dockerfile: test/docker/Dockerfile.agent-ubuntu
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - SERVER_URL=http://server:8080
+      - PEER_ID=ubuntu-agent
+      - PEER_TAGS=linux,ubuntu,test
+    depends_on:
+      - server
+    networks:
+      ipsec-net:
+        ipv4_address: 172.20.0.10
+
+  # Linux Agent (Debian)
+  agent-debian:
+    build:
+      context: ../..
+      dockerfile: test/docker/Dockerfile.agent-debian
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - SERVER_URL=http://server:8080
+      - PEER_ID=debian-agent
+      - PEER_TAGS=linux,debian,test
+    depends_on:
+      - server
+    networks:
+      ipsec-net:
+        ipv4_address: 172.20.0.11
+
+  # Linux Agent (RHEL-based)
+  agent-rocky:
+    build:
+      context: ../..
+      dockerfile: test/docker/Dockerfile.agent-rocky
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - SERVER_URL=http://server:8080
+      - PEER_ID=rocky-agent
+      - PEER_TAGS=linux,rocky,rhel,test
+    depends_on:
+      - server
+    networks:
+      ipsec-net:
+        ipv4_address: 172.20.0.12
+
+volumes:
+  server-data:
+
+networks:
+  ipsec-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

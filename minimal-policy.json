@@ -1,0 +1,39 @@
+{
+  "id": "test-policy-1",
+  "name": "Test Policy",
+  "description": "Minimal test policy",
+  "version": 1,
+  "enabled": true,
+  "priority": 100,
+  "applies_to": ["docker-linux-agent"],
+  "tunnels": [
+    {
+      "name": "test-tunnel-1",
+      "mode": "esp-tunnel",
+      "local_address": "172.20.0.10",
+      "remote_address": "172.20.0.20",
+      "crypto": {
+        "encryption": "aes256",
+        "integrity": "sha256",
+        "dhgroup": "modp2048",
+        "ikeversion": "ikev2",
+        "lifetime": 3600000000000
+      },
+      "auth": {
+        "type": "psk",
+        "secret": "test-shared-secret-key"
+      },
+      "traffic_selectors": [
+        {
+          "local_subnet": "10.1.0.0/24",
+          "remote_subnet": "10.2.0.0/24"
+        }
+      ],
+      "dpd": {
+        "delay": 30000000000,
+        "action": "restart"
+      },
+      "autostart": true
+    }
+  ]
+}

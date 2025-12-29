@@ -1,0 +1,74 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.html
+
+# Dependency directories
+vendor/
+
+# Go workspace file
+go.work
+
+# Build output
+bin/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Application
+*.log
+*.db
+*.sqlite
+*.sqlite3
+/data/
+/logs/
+
+# Configuration (may contain secrets)
+config.local.yaml
+*.secret
+*.key
+*.pem
+*.crt
+*.p12
+
+# Web dashboard
+web/node_modules/
+web/dist/
+web/.svelte-kit/
+web/build/
+web/package-lock.json
+web/yarn.lock
+
+# Testing
+test/integration/data/
+test/integration/logs/
+test/docker/volumes/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+.env.local
+.env.*.local
+
+# GoReleaser
+.goreleaser.yml.snapshot

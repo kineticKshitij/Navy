@@ -1,0 +1,16 @@
+# Local agent configuration for testing
+server_url: "http://localhost:8080"
+peer_id: "windows-test-agent"
+log_level: "info"
+
+# Sync interval in seconds
+sync_interval: 60
+
+# Health check interval in seconds
+health_check_interval: 30
+
+# Tags for policy targeting
+tags:
+  - "windows"
+  - "test"
+  - "local"

@@ -1,0 +1,184 @@
+# Example IPsec Policy Configuration
+# This file demonstrates the policy format for the IPsec management system
+
+# Policy metadata
+id: "example-policy-001"
+name: "Site-to-Site HQ to Branch"
+description: "IPsec tunnel between headquarters and branch office"
+version: 1
+enabled: true
+priority: 100
+
+# Target peers (optional - if empty, applies to all)
+applies_to:
+  - "*"  # Apply to all peers
+  # - "peer-id-123"  # Specific peer ID
+  # - "branch-office"  # Peer tag
+
+# Tunnel configurations
+tunnels:
+  - name: "hq-to-branch-1"
+    mode: "esp-tunnel"  # esp-tunnel, esp-transport, ah-tunnel, ah-transport, esp-ah-tunnel
+    
+    # Local endpoint
+    local_address: "203.0.113.10"
+    local_id: "hq@company.com"  # Optional IKE identity
+    
+    # Remote endpoint
+    remote_address: "203.0.113.20"
+    remote_id: "branch@company.com"  # Optional IKE identity
+    
+    # Cryptographic parameters
+    crypto:
+      encryption: "aes256"  # aes128, aes256, aes128gcm, aes256gcm, 3des
+      integrity: "sha256"   # sha1, sha256, sha384, sha512
+      dhgroup: "modp2048"   # modp1024, modp1536, modp2048, modp3072, modp4096, ecp256, ecp384, ecp521
+      ikeversion: "ikev2"   # ikev1, ikev2
+      lifetime: "3600s"     # SA lifetime (e.g., "1h", "3600s")
+    
+    # Authentication
+    auth:
+      type: "psk"  # psk or certificate
+      secret: "SuperSecretPresharedKey123!"
+      
+      # For certificate-based authentication:
+      # type: "certificate"
+      # cert_path: "/etc/ipsec/certs/peer.crt"
+      # key_path: "/etc/ipsec/private/peer.key"
+      # ca_cert_path: "/etc/ipsec/cacerts/ca.crt"
+    
+    # Traffic selectors (what traffic to encrypt)
+    traffic_selectors:
+      - local_subnet: "10.0.1.0/24"
+        remote_subnet: "10.0.2.0/24"
+        # protocol: "tcp"  # Optional: tcp, udp, icmp
+        # local_port: 0    # Optional: specific port
+        # remote_port: 0   # Optional: specific port
+      
+      # Multiple traffic selectors for different subnets
+      - local_subnet: "10.0.10.0/24"
+        remote_subnet: "10.0.20.0/24"
+    
+    # Dead Peer Detection
+    dpd:
+      delay: "30s"
+      action: "restart"  # restart, clear, hold
+    
+    # Auto-start tunnel on boot
+    autostart: true
+    
+    # Optional: Firewall mark for routing
+    # mark: "42"
+
+---
+# Additional policy example: Host-to-Host Transport Mode
+id: "example-policy-002"
+name: "Host-to-Host Secure Communication"
+description: "ESP transport mode between specific hosts"
+version: 1
+enabled: true
+priority: 50
+
+tunnels:
+  - name: "server-to-server"
+    mode: "esp-transport"
+    
+    local_address: "192.168.1.10"
+    remote_address: "192.168.1.20"
+    
+    crypto:
+      encryption: "aes128gcm"  # GCM mode for better performance
+      integrity: "sha256"
+      dhgroup: "modp2048"
+      ikeversion: "ikev2"
+      lifetime: "1h"
+    
+    auth:
+      type: "psk"
+      secret: "AnotherSecretKey456!"
+    
+    traffic_selectors:
+      - local_subnet: "192.168.1.10/32"
+        remote_subnet: "192.168.1.20/32"
+    
+    dpd:
+      delay: "30s"
+      action: "restart"
+    
+    autostart: true
+
+---
+# Example: Multi-tunnel policy for hub-and-spoke topology
+id: "example-policy-003"
+name: "Hub and Spoke - Multiple Branches"
+description: "Multiple tunnels from HQ to various branch offices"
+version: 1
+enabled: true
+priority: 75
+
+applies_to:
+  - "hub"  # Only apply to hub node
+
+tunnels:
+  - name: "hq-to-branch-east"
+    mode: "esp-tunnel"
+    local_address: "203.0.113.1"
+    remote_address: "203.0.113.10"
+    crypto:
+      encryption: "aes256"
+      integrity: "sha256"
+      dhgroup: "modp2048"
+      ikeversion: "ikev2"
+      lifetime: "3600s"
+    auth:
+      type: "psk"
+      secret: "BranchEastSecret123!"
+    traffic_selectors:
+      - local_subnet: "10.0.0.0/16"
+        remote_subnet: "10.1.0.0/16"
+    dpd:
+      delay: "30s"
+      action: "restart"
+    autostart: true
+
+  - name: "hq-to-branch-west"
+    mode: "esp-tunnel"
+    local_address: "203.0.113.1"
+    remote_address: "203.0.113.20"
+    crypto:
+      encryption: "aes256"
+      integrity: "sha256"
+      dhgroup: "modp2048"
+      ikeversion: "ikev2"
+      lifetime: "3600s"
+    auth:
+      type: "psk"
+      secret: "BranchWestSecret456!"
+    traffic_selectors:
+      - local_subnet: "10.0.0.0/16"
+        remote_subnet: "10.2.0.0/16"
+    dpd:
+      delay: "30s"
+      action: "restart"
+    autostart: true
+
+  - name: "hq-to-branch-south"
+    mode: "esp-tunnel"
+    local_address: "203.0.113.1"
+    remote_address: "203.0.113.30"
+    crypto:
+      encryption: "aes256"
+      integrity: "sha256"
+      dhgroup: "modp2048"
+      ikeversion: "ikev2"
+      lifetime: "3600s"
+    auth:
+      type: "psk"
+      secret: "BranchSouthSecret789!"
+    traffic_selectors:
+      - local_subnet: "10.0.0.0/16"
+        remote_subnet: "10.3.0.0/16"
+    dpd:
+      delay: "30s"
+      action: "restart"
+    autostart: true

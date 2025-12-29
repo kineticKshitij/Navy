@@ -1,0 +1,24 @@
+# Ubuntu agent for testing
+FROM ubuntu:22.04
+
+# Install strongSwan and dependencies
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    strongswan \
+    strongswan-swanctl \
+    libcharon-extra-plugins \
+    ca-certificates \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy agent binary (will be built by docker-compose)
+COPY bin/linux/ipsec-agent ./ipsec-agent
+RUN chmod +x ./ipsec-agent
+
+# Copy config
+COPY configs/agent-config.yaml /etc/ipsec-agent/config.yaml
+
+# Start strongSwan and agent
+CMD /usr/sbin/ipsec start && ./ipsec-agent start --config /etc/ipsec-agent/config.yaml
