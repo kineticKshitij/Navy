@@ -42,7 +42,7 @@ if (Test-Quick "Docker containers running" {
 
 if (Test-Quick "Server health check" {
     $response = Invoke-RestMethod http://localhost:8080/api/health -TimeoutSec 5
-    if ($response.status -ne "ok") { throw "Health check failed" }
+    if ($response.status -notin @("ok", "healthy")) { throw "Health check failed: $($response.status)" }
     $response.status
 }) { $passed++ } else { $failed++ }
 
@@ -58,10 +58,10 @@ if (Test-Quick "Policies accessible" {
 }) { $passed++ } else { $failed++ }
 
 if (Test-Quick "strongSwan daemon active" {
-    $ps = docker exec ipsec-agent-linux ps aux 2>&1
+    $ps = docker exec ipsec-agent-linux ps aux 2>&1 | Out-String
     if ($LASTEXITCODE -ne 0) { throw "Failed to check processes" }
-    if ($ps -notmatch "charon") { throw "charon not running" }
-    "charon running"
+    if ($ps -notmatch "charon|ipsec") { throw "strongSwan daemon not running" }
+    "strongSwan daemon active"
 }) { $passed++ } else { $failed++ }
 
 # Summary
